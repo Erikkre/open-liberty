@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package com.ibm.ws.microprofile.metrics;
+package com.ibm.ws.microprofile.metrics2.metrics;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -22,22 +22,22 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.microprofile.metrics.Constants;
+import com.ibm.ws.microprofile.metrics.MetricsHandler;
 import com.ibm.ws.microprofile.metrics.exceptions.EmptyRegistryException;
 import com.ibm.ws.microprofile.metrics.exceptions.HTTPMethodNotAllowedException;
 import com.ibm.ws.microprofile.metrics.exceptions.HTTPNotAcceptableException;
 import com.ibm.ws.microprofile.metrics.exceptions.NoSuchMetricException;
 import com.ibm.ws.microprofile.metrics.exceptions.NoSuchRegistryException;
 import com.ibm.ws.microprofile.metrics.helper.Util;
-import com.ibm.ws.microprofile.metrics.impl.SharedMetricRegistries;
-import com.ibm.ws.microprofile.metrics.writer.JSONMetadataWriter;
 import com.ibm.ws.microprofile.metrics.writer.JSONMetricWriter;
 import com.ibm.ws.microprofile.metrics.writer.OutputWriter;
-import com.ibm.ws.microprofile.metrics.writer.PrometheusMetricWriter;
+import com.ibm.ws.microprofile.metrics2.writer.JSONMetadataWriter2;
+import com.ibm.ws.microprofile.metrics2.writer.PrometheusMetricWriter2;
 import com.ibm.wsspi.rest.handler.RESTHandler;
 import com.ibm.wsspi.rest.handler.RESTRequest;
 import com.ibm.wsspi.rest.handler.RESTResponse;
@@ -49,12 +49,11 @@ import com.ibm.wsspi.rest.handler.RESTResponse;
                                                                                                                              RESTHandler.PROPERTY_REST_HANDLER_ROOT + "=" + Constants.PATH_SUB,
                                                                                                                              RESTHandler.PROPERTY_REST_HANDLER_ROOT + "=" + Constants.PATH_SUB_ATTRIBUTE
 })
-public class MetricsHandler implements RESTHandler {
+public class MetricsHandler2 extends MetricsHandler implements RESTHandler {
 
     private static final TraceComponent tc = Tr.register(MetricsHandler.class);
 
-    protected SharedMetricRegistries sharedMetricRegistry;
-
+    @Override
     @Activate
     protected void activate(ComponentContext context, Map<String, Object> properties) {
         for (String registry : Constants.REGISTRY_NAMES_LIST) {
@@ -63,11 +62,7 @@ public class MetricsHandler implements RESTHandler {
         Util.SHARED_METRIC_REGISTRIES = sharedMetricRegistry;
     }
 
-    @Reference
-    public void setSharedMetricRegistries(SharedMetricRegistries sharedMetricRegistry) {
-        this.sharedMetricRegistry = sharedMetricRegistry;
-    }
-
+    @Override
     @Deactivate
     protected void deactivate(ComponentContext context, int reason) {}
 
@@ -98,7 +93,7 @@ public class MetricsHandler implements RESTHandler {
 
             if (outputWriter instanceof JSONMetricWriter) {
                 response.setContentType(Constants.JSONCONTENTTYPE);
-            } else if (outputWriter instanceof JSONMetadataWriter) {
+            } else if (outputWriter instanceof JSONMetadataWriter2) {
                 response.setContentType(Constants.JSONCONTENTTYPE);
             } else {
                 response.setContentType(Constants.TEXTCONTENTTYPE);
@@ -145,44 +140,21 @@ public class MetricsHandler implements RESTHandler {
 
         if (Constants.METHOD_GET.equals(method)) {
             if (accept.contains(Constants.ACCEPT_HEADER_TEXT)) {
-                return new PrometheusMetricWriter(writer, locale);
+                return new PrometheusMetricWriter2(writer, locale);
             } else if (accept.contains(Constants.ACCEPT_HEADER_JSON)) {
                 return new JSONMetricWriter(writer);
             } else {
                 Tr.event(tc, "The Accept header is invalid.");
-                return new PrometheusMetricWriter(writer, locale);
+                return new PrometheusMetricWriter2(writer, locale);
             }
         } else if (Constants.METHOD_OPTIONS.equals(method)) {
             if (accept.contains(Constants.ACCEPT_HEADER_JSON)) {
-                return new JSONMetadataWriter(writer, locale);
+                return new JSONMetadataWriter2(writer, locale);
             } else {
                 throw new HTTPNotAcceptableException();
             }
         } else {
             throw new HTTPMethodNotAllowedException();
         }
-    }
-
-    protected void setInitialContentType(RESTRequest request, RESTResponse response) {
-
-        String accept = request.getHeader(Constants.ACCEPT_HEADER);
-        if (accept == null) {
-            accept = Constants.ACCEPT_HEADER_TEXT;
-        }
-
-        if (accept.contains(Constants.ACCEPT_HEADER_TEXT)) {
-            response.setContentType(Constants.TEXTCONTENTTYPE);
-        } else if (accept.contains(Constants.ACCEPT_HEADER_JSON)) {
-            response.setContentType(Constants.JSONCONTENTTYPE);
-        } else {
-            response.setContentType(Constants.TEXTCONTENTTYPE);
-        }
-    }
-
-    protected String checkSlash(String s) {
-        if (s.endsWith("/")) {
-            s = s.substring(0, s.length() - 1);
-        }
-        return s;
     }
 }

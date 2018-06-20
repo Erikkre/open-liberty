@@ -28,7 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+
+import com.ibm.ws.microprofile.metrics.BaseMetrics;
 
 /**
  * A map of shared, named metric registries.
@@ -40,6 +43,12 @@ public class SharedMetricRegistries {
 
     public static void clear() {
         REGISTRIES.clear();
+    }
+
+    @Activate
+    public void activate() {
+        System.out.println("Activating SharedMetricRegistries1.0");
+        BaseMetrics.getInstance(this);
     }
 
     public static Set<String> names() {

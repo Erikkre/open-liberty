@@ -8,9 +8,8 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package com.ibm.ws.microprofile.metrics.writer;
+package com.ibm.ws.microprofile.metrics2.writer;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Locale;
 import java.util.Map;
@@ -27,73 +26,22 @@ import org.eclipse.microprofile.metrics.Timer;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.microprofile.metrics.Constants;
-import com.ibm.ws.microprofile.metrics.exceptions.EmptyRegistryException;
-import com.ibm.ws.microprofile.metrics.exceptions.NoSuchMetricException;
-import com.ibm.ws.microprofile.metrics.exceptions.NoSuchRegistryException;
 import com.ibm.ws.microprofile.metrics.helper.PrometheusBuilder;
-import com.ibm.ws.microprofile.metrics.helper.Util;
+import com.ibm.ws.microprofile.metrics.writer.PrometheusMetricWriter;
 
 /**
  *
  */
-public class PrometheusMetricWriter implements OutputWriter {
+public class PrometheusMetricWriter2 extends PrometheusMetricWriter {
 
     private static final TraceComponent tc = Tr.register(PrometheusMetricWriter.class);
 
-    private final Writer writer;
-    protected final Locale locale;
-
-    public PrometheusMetricWriter(Writer writer, Locale locale) {
-        this.writer = writer;
-        this.locale = locale;
+    public PrometheusMetricWriter2(Writer writer, Locale locale) {
+        super(writer, locale);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws EmptyRegistryException
-     */
     @Override
-    public void write(String registryName, String metricName) throws NoSuchMetricException, NoSuchRegistryException, IOException, EmptyRegistryException {
-        StringBuilder builder = new StringBuilder();
-        writeMetricsAsPrometheus(builder, registryName, metricName);
-        serialize(builder);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void write(String registryName) throws NoSuchRegistryException, EmptyRegistryException, IOException {
-        StringBuilder builder = new StringBuilder();
-        writeMetricsAsPrometheus(builder, registryName);
-        serialize(builder);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    @FFDCIgnore({ EmptyRegistryException.class, NoSuchRegistryException.class })
-    public void write() throws IOException {
-        StringBuilder builder = new StringBuilder();
-        for (String registryName : Constants.REGISTRY_NAMES_LIST) {
-            try {
-                writeMetricsAsPrometheus(builder, registryName);
-            } catch (NoSuchRegistryException e) { // Ignore
-            } catch (EmptyRegistryException e) { // Ignore
-            }
-        }
-        serialize(builder);
-    }
-
-    private void writeMetricsAsPrometheus(StringBuilder builder, String registryName) throws NoSuchRegistryException, EmptyRegistryException {
-        writeMetricMapAsPrometheus(builder, registryName, Util.getMetricsAsMap(registryName), Util.getMetricsMetadataAsMap(registryName));
-    }
-
-    private void writeMetricsAsPrometheus(StringBuilder builder, String registryName,
-                                          String metricName) throws NoSuchRegistryException, NoSuchMetricException, EmptyRegistryException {
-        writeMetricMapAsPrometheus(builder, registryName, Util.getMetricsAsMap(registryName, metricName), Util.getMetricsMetadataAsMap(registryName));
-    }
-
     protected void writeMetricMapAsPrometheus(StringBuilder builder, String registryName, Map<String, Metric> metricMap, Map<String, Metadata> metricMetadataMap) {
         for (Entry<String, Metric> entry : metricMap.entrySet()) {
             String metricNamePrometheus = registryName + ":" + entry.getKey();
@@ -102,21 +50,19 @@ public class PrometheusMetricWriter implements OutputWriter {
 
             //description
             Metadata metricMetaData = metricMetadataMap.get(entryName);
-            System.out.println("test");
-            System.out.println(metricMetaData);
 
             String description = "";
 
-            if (metricMetaData.getDescription() == null || metricMetaData.getDescription().trim().isEmpty()) {
+            if (metricMetaData.getDescription() == null || metricMetaData.getDescription().get().trim().isEmpty()) {
                 description = "";
             } else {
-                description = Tr.formatMessage(tc, locale, metricMetaData.getDescription());
+                description = Tr.formatMessage(tc, locale, metricMetaData.getDescription().get());
             }
 
             String tags = metricMetaData.getTagsAsString();
 
             //appending unit to the metric name
-            String unit = metricMetaData.getUnit();
+            String unit = metricMetaData.getUnit().get();
 
             //Unit determination / translation
             double conversionFactor = 0;
@@ -239,11 +185,4 @@ public class PrometheusMetricWriter implements OutputWriter {
         }
     }
 
-    private void serialize(StringBuilder builder) throws IOException {
-        try {
-            writer.write(builder.toString());
-        } finally {
-            writer.close();
-        }
-    }
 }

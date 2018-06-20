@@ -36,7 +36,7 @@ public class JSONMetadataWriter implements OutputWriter {
     private static final TraceComponent tc = Tr.register(JSONMetadataWriter.class);
 
     private final Writer writer;
-    protected final Locale locale;
+    private final Locale locale;
 
     public JSONMetadataWriter(Writer writer, Locale locale) {
         this.writer = writer;
@@ -82,7 +82,7 @@ public class JSONMetadataWriter implements OutputWriter {
         return getJsonFromMetricMetadataMap(Util.getMetricsMetadataAsMap(registryName, metric));
     }
 
-    protected JSONObject getJsonFromMetricMetadataMap(Map<String, Metadata> metadataMap) {
+    private JSONObject getJsonFromMetricMetadataMap(Map<String, Metadata> metadataMap) {
         JSONObject jsonObject = new JSONObject();
         for (Entry<String, Metadata> entry : metadataMap.entrySet()) {
             jsonObject.put(entry.getKey(), getJsonFromObject(entry.getValue()));
@@ -90,7 +90,7 @@ public class JSONMetadataWriter implements OutputWriter {
         return jsonObject;
     }
 
-    protected JSONObject getJsonFromObject(Metadata metadata) {
+    private JSONObject getJsonFromObject(Metadata metadata) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name", sanitizeMetadata(metadata.getName()));
         jsonObject.put("displayName", sanitizeMetadata(metadata.getDisplayName()));
@@ -103,7 +103,7 @@ public class JSONMetadataWriter implements OutputWriter {
         return jsonObject;
     }
 
-    protected String sanitizeMetadata(String s) {
+    private String sanitizeMetadata(String s) {
         if (s == null || s.trim().isEmpty()) {
             return "";
         } else {
@@ -111,7 +111,7 @@ public class JSONMetadataWriter implements OutputWriter {
         }
     }
 
-    protected String getJsonFromMap(Map<String, String> map) {
+    private String getJsonFromMap(Map<String, String> map) {
         if (map == null)
             return null;
         StringBuilder tagList = new StringBuilder();

@@ -133,7 +133,7 @@ public class BaseMetrics {
         return aString.replaceAll("\\s+", "");
     }
 
-    private class BMGauge<T> implements Gauge<T> {
+    protected class BMGauge<T> implements Gauge<T> {
         String objectName, attribute, subAttribute;
         boolean isComposite = false;
 
@@ -166,7 +166,7 @@ public class BaseMetrics {
         }
     }
 
-    private class BMCounter extends CounterImpl {
+    protected class BMCounter extends CounterImpl {
         String objectName, attribute;
 
         public BMCounter(String objectName, String attribute) {

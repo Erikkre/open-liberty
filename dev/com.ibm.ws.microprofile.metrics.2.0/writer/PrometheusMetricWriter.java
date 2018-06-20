@@ -43,7 +43,7 @@ public class PrometheusMetricWriter implements OutputWriter {
     private static final TraceComponent tc = Tr.register(PrometheusMetricWriter.class);
 
     private final Writer writer;
-    protected final Locale locale;
+    private final Locale locale;
 
     public PrometheusMetricWriter(Writer writer, Locale locale) {
         this.writer = writer;
@@ -94,7 +94,7 @@ public class PrometheusMetricWriter implements OutputWriter {
         writeMetricMapAsPrometheus(builder, registryName, Util.getMetricsAsMap(registryName, metricName), Util.getMetricsMetadataAsMap(registryName));
     }
 
-    protected void writeMetricMapAsPrometheus(StringBuilder builder, String registryName, Map<String, Metric> metricMap, Map<String, Metadata> metricMetadataMap) {
+    private void writeMetricMapAsPrometheus(StringBuilder builder, String registryName, Map<String, Metric> metricMap, Map<String, Metadata> metricMetadataMap) {
         for (Entry<String, Metric> entry : metricMap.entrySet()) {
             String metricNamePrometheus = registryName + ":" + entry.getKey();
             Metric metric = entry.getValue();
