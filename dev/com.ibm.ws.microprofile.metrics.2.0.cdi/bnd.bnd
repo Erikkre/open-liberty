@@ -30,15 +30,15 @@ Import-Package: \
 Export-Package: \
 	!com.ibm.ws.microprofile.metrics.cdi.resources,\
 	io.astefanutti.metrics.cdi,\
-	com.ibm.ws.microprofile.metrics.cdi.producer,\
-	com.ibm.ws.microprofile.metrics2.cdi
+	com.ibm.ws.microprofile.metrics.cdi.producer
+
 
 Private-Package: \
     com.ibm.ws.microprofile.metrics.cdi.resources
 
 Include-Resource: \
-	@build/libs/microprofile-metrics-api-1.2-SNAPSHOT.jar;version=file,\
     META-INF=resources/META-INF
+    
     
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
 
@@ -53,10 +53,10 @@ WS-TraceGroup: METRICS
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	com.ibm.ws.cdi.interfaces;version=latest,\
 	com.ibm.ws.microprofile.metrics.2.0;version=latest,\
-	com.ibm.ws.microprofile.metrics.cdi;version=latest,\
-	build/libs/microprofile-metrics-api-1.2-SNAPSHOT.jar;version=file,\
+	com.ibm.websphere.org.eclipse.microprofile.metrics.2.0;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
     com.ibm.websphere.javaee.interceptor.1.2;version=latest,\
     com.ibm.websphere.javaee.annotation.1.2;version=latest,\
     com.ibm.websphere.javaee.concurrent.1.0;version=latest
+
  

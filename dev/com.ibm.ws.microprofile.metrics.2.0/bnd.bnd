@@ -37,20 +37,19 @@ Private-Package: \
 
 Export-Package: \
 	!com.ibm.ws.microprofile.metrics.resources,\
-	com.ibm.ws.microprofile.metrics2.*,\
 	com.ibm.ws.microprofile.metrics.impl,\
 	com.ibm.ws.microprofile.metrics
 
 Include-Resource: \
-	@build/libs/microprofile-metrics-api-1.2-SNAPSHOT.jar,\
     WEB-INF=resources/WEB-INF
+    
     
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
 
 -dsannotations-inherit: true
--dsannotations: com.ibm.ws.microprofile.metrics2.impl.SharedMetricRegistries2,\
-	com.ibm.ws.microprofile.metrics2.metrics.MetricsHandler2,\
-	com.ibm.ws.microprofile.metrics.ApplicationListener
+-dsannotations: com.ibm.ws.microprofile.metrics.MetricsHandler,\
+	com.ibm.ws.microprofile.metrics.ApplicationListener,\
+	com.ibm.ws.microprofile.metrics.impl.SharedMetricRegistries
 
 WS-TraceGroup: METRICS
 
@@ -59,18 +58,22 @@ WS-TraceGroup: METRICS
 	com.ibm.ws.logging;version=latest,\
 	com.ibm.websphere.org.osgi.service.component;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
+	com.ibm.websphere.org.eclipse.microprofile.metrics.2.0;version=latest,\
 	com.ibm.websphere.org.eclipse.microprofile.config.1.2.1;version=latest,\
-	com.ibm.websphere.javaee.servlet.3.1;version=latest,\
+	com.ibm.websphere.appserver.spi.kernel.service;version=latest,\
 	com.ibm.websphere.appserver.api.json;version=latest,\
+	com.ibm.websphere.appserver.spi.httptransport;version=latest,\
+	com.ibm.websphere.javaee.servlet.3.1;version=latest,\
+	com.ibm.websphere.appserver.spi.ssl;version=latest,\
 	com.ibm.wsspi.org.osgi.service.event;version=latest,\
 	com.ibm.websphere.rest.handler;version=latest,\
 	com.ibm.ws.rest.handler;version=latest,\
+	com.ibm.ws.webcontainer;version=latest,\
+	com.ibm.ws.container.service;version=latest,\
+	com.ibm.ws.container.service.compat;version=latest,\
 	com.ibm.websphere.javaee.annotation.1.2;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	com.ibm.websphere.javaee.interceptor.1.2;version=latest,\
-	com.ibm.websphere.javaee.cdi.1.2;version=latest,\
-	com.ibm.ws.microprofile.metrics;version=latest,\
-	build/libs/microprofile-metrics-api-1.2-SNAPSHOT.jar;version=file
-	
-
+	com.ibm.websphere.javaee.cdi.1.2;version=latest, \
+	com.ibm.ws.kernel.service;version=latest
  

@@ -102,8 +102,6 @@ public class PrometheusMetricWriter implements OutputWriter {
 
             //description
             Metadata metricMetaData = metricMetadataMap.get(entryName);
-            System.out.println("test");
-            System.out.println(metricMetaData);
 
             String description = "";
 

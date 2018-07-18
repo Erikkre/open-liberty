@@ -38,22 +38,14 @@ import org.eclipse.microprofile.metrics.annotation.Gauge;
 import org.eclipse.microprofile.metrics.annotation.Metered;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
-import io.astefanutti.metrics.cdi.MetricName;
 import io.astefanutti.metrics.cdi.MetricResolver;
-import io.astefanutti.metrics.cdi.MetricsExtension;
 
 @ApplicationScoped
 @Specializes
 public class MetricResolver11 extends MetricResolver {
 
-    private final MetricRegistry registry;
-
     @Inject
-    public MetricResolver11(MetricsExtension extension, MetricName metricName, MetricRegistry registry) {
-        this.extension = extension;
-        this.metricName = metricName;
-        this.registry = registry;
-    }
+    protected MetricRegistry registry;
 
     @Override
     protected <E extends Member & AnnotatedElement, T extends Annotation> Of<T> elementResolverOf(E element, Class<T> metric) {
@@ -75,7 +67,7 @@ public class MetricResolver11 extends MetricResolver {
         return of;
     }
 
-    private boolean getReusable(Annotation annotation) {
+    protected boolean getReusable(Annotation annotation) {
         if (Counted.class.isInstance(annotation))
             return ((Counted) annotation).reusable();
         else if (Gauge.class.isInstance(annotation))
