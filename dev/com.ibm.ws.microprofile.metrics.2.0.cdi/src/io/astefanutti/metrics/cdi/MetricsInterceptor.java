@@ -40,7 +40,9 @@ import org.eclipse.microprofile.metrics.MetricFilter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Gauge;
+import org.eclipse.microprofile.metrics.annotation.HitCounted;
 import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.ParallelCounted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import com.ibm.websphere.ras.Tr;
@@ -116,6 +118,18 @@ import com.ibm.ws.microprofile.metrics.cdi.producer.MetricRegistryFactory;
         if (counted.isPresent()) {
             registry.counter(counted.metadata());
             extension.addMetricName(element, counted.metricAnnotation(), counted.metadata().getName());
+        }
+
+        MetricResolver.Of<HitCounted> hitCounted = resolver.hitCounted(bean, element);
+        if (hitCounted.isPresent()) {
+            registry.hitCounter(hitCounted.metadata());
+            extension.addMetricName(element, hitCounted.metricAnnotation(), hitCounted.metadata().getName());
+        }
+
+        MetricResolver.Of<ParallelCounted> parallelCounted = resolver.parallelCounted(bean, element);
+        if (parallelCounted.isPresent()) {
+            registry.parallelCounter(parallelCounted.metadata());
+            extension.addMetricName(element, parallelCounted.metricAnnotation(), parallelCounted.metadata().getName());
         }
 
         MetricResolver.Of<Metered> metered = resolver.metered(bean, element);

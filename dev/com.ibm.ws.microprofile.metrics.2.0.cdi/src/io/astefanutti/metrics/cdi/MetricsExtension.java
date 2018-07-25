@@ -58,7 +58,9 @@ import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Gauge;
+import org.eclipse.microprofile.metrics.annotation.HitCounted;
 import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.ParallelCounted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -102,7 +104,8 @@ public class MetricsExtension implements Extension, WebSphereCDIExtension {
         return configuration.getParameters();
     }
 
-    private <X> void metricsAnnotations(@Observes @WithAnnotations({ Counted.class, Gauge.class, Metered.class, Timed.class }) ProcessAnnotatedType<X> pat) {
+    private <X> void metricsAnnotations(@Observes @WithAnnotations({ ParallelCounted.class, HitCounted.class, Counted.class, Gauge.class, Metered.class,
+                                                                     Timed.class }) ProcessAnnotatedType<X> pat) {
         pat.setAnnotatedType(new AnnotatedTypeDecorator<>(pat.getAnnotatedType(), METRICS_BINDING));
     }
 

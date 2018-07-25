@@ -33,9 +33,11 @@ import javax.interceptor.Interceptor;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Histogram;
+import org.eclipse.microprofile.metrics.HitCounter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.ParallelCounter;
 import org.eclipse.microprofile.metrics.Timer;
 
 @Alternative
@@ -48,6 +50,20 @@ import org.eclipse.microprofile.metrics.Timer;
         Metadata metadata = metricName.metadataOf(ip, Counter.class);
         extension.addMetricName(metadata.getName());
         return registry.counter(metadata);
+    }
+
+    @Produces
+    private static HitCounter hitCounter(InjectionPoint ip, MetricRegistry registry, MetricName metricName, MetricsExtension extension) {
+        Metadata metadata = metricName.metadataOf(ip, HitCounter.class);
+        extension.addMetricName(metadata.getName());
+        return registry.hitCounter(metadata);
+    }
+
+    @Produces
+    private static ParallelCounter parallelCounter(InjectionPoint ip, MetricRegistry registry, MetricName metricName, MetricsExtension extension) {
+        Metadata metadata = metricName.metadataOf(ip, ParallelCounter.class);
+        extension.addMetricName(metadata.getName());
+        return registry.parallelCounter(metadata);
     }
 
     @Produces

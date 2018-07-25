@@ -38,11 +38,13 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Histogram;
+import org.eclipse.microprofile.metrics.HitCounter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetadataBuilder;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.ParallelCounter;
 import org.eclipse.microprofile.metrics.Timer;
 import org.eclipse.microprofile.metrics.annotation.Metric;
 
@@ -135,6 +137,10 @@ import org.eclipse.microprofile.metrics.annotation.Metric;
             return metadataOf(member, Gauge.class);
         } else if (typeName.startsWith(Counter.class.getName())) {
             return metadataOf(member, Counter.class);
+        } else if (typeName.startsWith(HitCounter.class.getName())) {
+            return metadataOf(member, HitCounter.class);
+        } else if (typeName.startsWith(ParallelCounter.class.getName())) {
+            return metadataOf(member, ParallelCounter.class);
         } else if (typeName.startsWith(Meter.class.getName())) {
             return metadataOf(member, Meter.class);
         } else if (typeName.startsWith(Histogram.class.getName())) {
