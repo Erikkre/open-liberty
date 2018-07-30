@@ -36,7 +36,7 @@ import javax.interceptor.AroundTimeout;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
-import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.HitCounter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.HitCounted;
 
@@ -74,17 +74,16 @@ import org.eclipse.microprofile.metrics.annotation.HitCounted;
     }
 
     private <E extends Member & AnnotatedElement> Object countedCallable(InvocationContext context, E element) throws Exception {
-        MetricResolver.Of<HitCounted> counted = resolver.hitCounted(bean.getBeanClass(), element);
-        Counter counter = (Counter) registry.getMetrics().get(counted.metricName());
-        if (counter == null)
-            throw new IllegalStateException("No counter with name [" + counted.metricName() + "] found in registry [" + registry + "]");
+        MetricResolver.Of<HitCounted> hitCounted = resolver.hitCounted(bean.getBeanClass(), element);
+        HitCounter hitCounter = (HitCounter) registry.getMetrics().get(hitCounted.metricName());
+        if (hitCounter == null)
+            throw new IllegalStateException("No counter with name [" + hitCounted.metricName() + "] found in registry [" + registry + "]");
 
-        counter.inc();
+        hitCounter.inc();
         try {
             return context.proceed();
         } finally {
-            if (!counted.metricAnnotation().monotonic())
-                counter.dec();
+            //Should not be reached
         }
     }
 }

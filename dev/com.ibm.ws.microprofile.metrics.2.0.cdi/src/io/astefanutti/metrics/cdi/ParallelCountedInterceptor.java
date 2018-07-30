@@ -36,11 +36,11 @@ import javax.interceptor.AroundTimeout;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
-import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.annotation.HitCounted;
+import org.eclipse.microprofile.metrics.ParallelCounter;
+import org.eclipse.microprofile.metrics.annotation.ParallelCounted;
 
-@HitCounted
+@ParallelCounted
 @Interceptor
 @Priority(Interceptor.Priority.LIBRARY_BEFORE + 10)
 /* package-private */ class ParallelCountedInterceptor {
@@ -74,17 +74,16 @@ import org.eclipse.microprofile.metrics.annotation.HitCounted;
     }
 
     private <E extends Member & AnnotatedElement> Object countedCallable(InvocationContext context, E element) throws Exception {
-        MetricResolver.Of<HitCounted> counted = resolver.hitCounted(bean.getBeanClass(), element);
-        Counter counter = (Counter) registry.getMetrics().get(counted.metricName());
-        if (counter == null)
-            throw new IllegalStateException("No counter with name [" + counted.metricName() + "] found in registry [" + registry + "]");
+        MetricResolver.Of<ParallelCounted> parallelCounted = resolver.parallelCounted(bean.getBeanClass(), element);
+        ParallelCounter parallelCounter = (ParallelCounter) registry.getMetrics().get(parallelCounted.metricName());
+        if (parallelCounter == null)
+            throw new IllegalStateException("No counter with name [" + parallelCounted.metricName() + "] found in registry [" + registry + "]");
 
-        counter.inc();
+        parallelCounter.inc();
         try {
             return context.proceed();
         } finally {
-            if (!counted.metricAnnotation().monotonic())
-                counter.dec();
+            parallelCounter.dec();
         }
     }
 }
