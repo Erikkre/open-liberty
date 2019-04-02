@@ -16,6 +16,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 
@@ -23,6 +26,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
@@ -34,6 +39,8 @@ import componenttest.topology.utils.HttpsRequest;
 @RunWith(FATRunner.class)
 public class ValidateDataSourceTest extends FATServletClient {
 
+    private static final Class<?> c = ValidateDataSourceTest.class;
+
     @Server("com.ibm.ws.rest.handler.validator.jdbc.fat")
     public static LibertyServer server;
 
@@ -44,17 +51,20 @@ public class ValidateDataSourceTest extends FATServletClient {
         server.startServer();
 
         // Wait for the API to become available
-        assertNotNull(server.waitForStringInLog("CWWKS0008I")); // CWWKS0008I: The security service is ready.
-        assertNotNull(server.waitForStringInLog("CWWKS4105I")); // CWWKS4105I: LTPA configuration is ready after # seconds.
-        assertNotNull(server.waitForStringInLog("CWPKI0803A")); // CWPKI0803A: SSL certificate created in # seconds. SSL key file: ...
-        assertNotNull(server.waitForStringInLog("CWWKO0219I")); // CWWKO0219I: TCP Channel defaultHttpEndpoint-ssl has been started and is now listening for requests on host *  (IPv6) port 8020.
-        assertNotNull(server.waitForStringInLog("CWWKT0016I")); // CWWKT0016I: Web application available (default_host): http://9.10.111.222:8010/ibm/api/
+        List<String> messages = new ArrayList<>();
+        messages.add("CWWKS0008I"); // CWWKS0008I: The security service is ready.
+        messages.add("CWWKS4105I"); // CWWKS4105I: LTPA configuration is ready after # seconds.
+        messages.add("CWPKI0803A"); // CWPKI0803A: SSL certificate created in # seconds. SSL key file: ...
+        messages.add("CWWKO0219I: .* defaultHttpEndpoint-ssl"); // CWWKO0219I: TCP Channel defaultHttpEndpoint-ssl has been started and is now listening for requests on host *  (IPv6) port 8020.
+        messages.add("CWWKT0016I"); // CWWKT0016I: Web application available (default_host): http://9.10.111.222:8010/ibm/api/
+        server.waitForStringsInLogUsingMark(messages);
 
         // TODO remove once transactions code is fixed to use container auth for the recovery log dataSource
         // Lacking this fix, transaction manager will experience an auth failure and log FFDC for it.
         // The following line causes an XA-capable data source to be used for the first time outside of a test method execution,
         // so that the FFDC is not considered a test failure.
-        new HttpsRequest(server, "/ibm/api/validator/dataSource/DefaultDataSource").run(JsonObject.class);
+        JsonObject response = new HttpsRequest(server, "/ibm/api/validator/dataSource/DefaultDataSource").run(JsonObject.class);
+        Log.info(c, "setUp", "DefaultDataSource response: " + response);
     }
 
     @AfterClass
@@ -96,6 +106,31 @@ public class ValidateDataSourceTest extends FATServletClient {
         assertTrue(err, json.getString("databaseProductVersion").matches(VERSION_REGEX));
         assertEquals(err, "Apache Derby Embedded JDBC Driver", json.getString("jdbcDriverName"));
         assertTrue(err, json.getString("jdbcDriverVersion").matches(VERSION_REGEX));
+    }
+
+    @Test
+    public void testVariableSubstitution() throws Exception {
+        HttpsRequest request = new HttpsRequest(server, "/ibm/api/validator/dataSource/DefaultDataSource?user=bogus")
+                        .requestProp("X-Validator-User", "${DB_USER}")
+                        .requestProp("X-Validator-Password", "${DB_PASS}");
+        JsonObject json = request.run(JsonObject.class);
+        assertSuccessResponse(json, "DefaultDataSource", "DefaultDataSource");
+        request.method("POST");
+        json = request.run(JsonObject.class);
+        assertSuccessResponse(json, "DefaultDataSource", "DefaultDataSource");
+    }
+
+    @Test
+    public void testEnvVariableSubstitution() throws Exception {
+        HttpsRequest request = new HttpsRequest(server, "/ibm/api/validator/dataSource/DefaultDataSource?user=bogus")
+                        .requestProp("X-Validator-User", "${env.DB_USER_ENV}")
+                        .requestProp("X-Validator-Password", "${env.DB_PASS_ENV}");
+        JsonObject json = request.run(JsonObject.class);
+        assertSuccessResponse(json, "DefaultDataSource", "DefaultDataSource");
+
+        request.method("POST");
+        json = request.run(JsonObject.class);
+        assertSuccessResponse(json, "DefaultDataSource", "DefaultDataSource");
     }
 
     @Test
@@ -527,5 +562,20 @@ public class ValidateDataSourceTest extends FATServletClient {
         assertEquals(err, 40000, json.getInt("errorCode"));
         assertEquals(err, "java.sql.SQLNonTransientException", json.getString("class"));
         assertTrue(err, json.getString("message").contains("Invalid authentication"));
+    }
+
+    private static void assertSuccessResponse(JsonObject json, String expectedUID, String expectedID) {
+        String err = "Unexpected json response: " + json.toString();
+        assertEquals(err, expectedUID, json.getString("uid"));
+        assertEquals(err, expectedID, expectedID == null ? json.get("id") : json.getString("id"));
+        assertNull(err, json.get("jndiName"));
+        assertTrue(err, json.getBoolean("successful"));
+        assertNull(err, json.get("failure"));
+        JsonObject info = json.getJsonObject("info");
+        assertNotNull(err, info);
+        assertEquals(err, "Apache Derby", info.getString("databaseProductName"));
+        assertTrue(err, info.getString("databaseProductVersion").matches(VERSION_REGEX));
+        assertEquals(err, "Apache Derby Embedded JDBC Driver", info.getString("jdbcDriverName"));
+        assertTrue(err, info.getString("jdbcDriverVersion").matches(VERSION_REGEX));
     }
 }
